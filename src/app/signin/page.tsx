@@ -1,21 +1,21 @@
-// src/pages/signin.tsx
+// src/app/signin/page.tsx
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your sign-in logic here
-
-    // For now, just redirect to the home page after sign in
-    router.push('/');
+    login(email, password, () => {
+      router.push('/customer');
+    });
   };
 
   return (
@@ -46,9 +46,6 @@ export default function SignIn() {
           Sign In
         </button>
       </form>
-      <Link href="/" legacyBehavior>
-        <a className="mt-4 text-blue-100 hover:text-white">Go Back</a>
-      </Link>
     </div>
   );
 }

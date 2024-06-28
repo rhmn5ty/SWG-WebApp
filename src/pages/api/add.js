@@ -1,0 +1,82 @@
+// src/pages/api/add.js
+import axios from 'axios';
+import clientPromise from '../../utils/mongodb';
+
+export default async (req, res) => {
+  if (req.method === 'POST') {
+    try {
+      const client = await clientPromise;
+      const db = client.db("swg");
+      const collection = db.collection("customer");
+
+      const { username, userPassword, ...customer } = req.body
+
+      // Tokenize the ktp field
+      const tokenizeNIK = await axios.post(
+        'https://192.168.10.232/vts/rest/v2.0/tokenize',
+        {
+          tokengroup: "TokenGroup",
+          data: customer.nik,
+          tokentemplate: "TokenTemplate"
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: username, // Use the username for authentication
+            password: userPassword // Use the userPassword for authentication
+          },
+          httpsAgent: new (require('https').Agent)({
+            rejectUnauthorized: false // This allows self-signed certificates
+          })
+        }
+      );
+
+      if (tokenizeNIK.status === 200) {
+        customer.nik = tokenizeNIK.data.token;
+      } else {
+        throw new Error(`Tokenization failed: ${tokenizeNIK.status}`);
+      }
+
+      // Tokenize the ktp field
+      const tokenizeCreditCard = await axios.post(
+        'https://192.168.10.232/vts/rest/v2.0/tokenize',
+        {
+          tokengroup: "TokenGroup",
+          data: customer.creditCard,
+          tokentemplate: "TokenTemplate"
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          auth: {
+            username: username, // Use the username for authentication
+            password: userPassword // Use the userPassword for authentication
+          },
+          httpsAgent: new (require('https').Agent)({
+            rejectUnauthorized: false // This allows self-signed certificates
+          })
+        }
+      );
+
+      if (tokenizeCreditCard.status === 200) {
+        customer.creditCard = tokenizeCreditCard.data.token;
+      } else {
+        throw new Error(`Tokenization failed: ${tokenizeCreditCard.status}`);
+      }
+
+      console.log("Inserting customer with tokenized KTP:", customer); // Log the customer data being inserted
+
+      await collection.insertOne(customer);
+
+      res.status(200).json({ message: 'Customer added successfully!' });
+    } catch (e) {
+      console.error('Error in API route:', e);
+      res.status(500).json({ message: 'Failed to add customer', error: e.message });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
+};
