@@ -1,0 +1,36 @@
+{
+  "id":"Db2ToFileSample-90643295a90sdf5",
+  "name":"Db2ToFileSample",
+  "createBadRecordFile":true,
+  "source":{
+    "@type":"DB2",
+    "connectionurl":"jdbc:db2://localhost:50000/SAMPLE",
+    "username":"db2admin",
+    "password":"",
+    "driverclass":"com.ibm.db2.jcc.DB2Driver"
+  },
+  "destination":{
+    "@type":"CSV_FILE",
+    "filepath":"output.csv",
+    "delimiter":","
+  },
+  "tables":[
+    {
+      "columns":[
+        {
+          "name":"POPULATION",
+          "action":"ENCRYPT",
+          "config":[
+            {
+              "@type":"FPE",
+              "key":"KEY-NEW",
+              "characterSet":"digits",
+              "tweak":"auto"
+            }
+          ]
+        }
+      ],
+      "source":"country"
+    }
+  ]
+}

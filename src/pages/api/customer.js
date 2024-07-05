@@ -1,145 +1,93 @@
-// src/pages/api/customers.js
 import axios from 'axios';
 import clientPromise from '../../utils/mongodb';
 
 export default async (req, res) => {
   if (req.method === 'GET') {
-    const { username, password, role } = req.query; // Extract username and password from query parameters
+    const { username, password, role } = req.query;
 
     try {
       const client = await clientPromise;
       const db = client.db("swg");
-      const collection = db.collection("customer");
+      const customerCollection = db.collection("customer");
+      const orderCollection = db.collection("order");
 
-      const customers = await collection.find({}).toArray();
+      const customers = await customerCollection.find({}).toArray();
 
-      if (role === 'database') {
-        // Return raw data for users with the role 'database'
-        return res.status(200).json(customers);
-      }
+      // Fetch orders for each customer
+      const customerIds = customers.map(customer => customer.customer_id);
+      const orders = await orderCollection.find({ customer_id: { $in: customerIds } }).toArray();
 
-      // Detokenize the KTP field for each customer
-      
       const detokenizedCustomers = await Promise.all(customers.map(async (customer) => {
-        try {
-          if (role === 'hr'){
-            const detokenizeNIK = await axios.post(
-              'https://192.168.10.232/vts/rest/v2.0/detokenize',
-              {
-                tokengroup: "TokenGroup",
-                token: customer.nik,
-                tokentemplate: "TokenTemplate"
-              },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
+        if (role !== 'database') {
+          try {
+            let detokenizeNIKResponse;
+            let detokenizeCreditCardResponse;
+
+            if (role === 'hr' || role === 'finance') {
+              detokenizeNIKResponse = await axios.post(
+                'https://192.168.10.232/vts/rest/v2.0/detokenize',
+                {
+                  tokengroup: "TokenGroup",
+                  token: customer.nik,
+                  tokentemplate: "TokenTemplate"
                 },
-                auth: {
-                  username: 'admin', // Use the username for authentication
-                  password: password  // Use the password for authentication
-                },
-                httpsAgent: new (require('https').Agent)({
-                  rejectUnauthorized: false // This allows self-signed certificates
-                })
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  auth: {
+                    username: 'admin',
+                    password: password
+                  },
+                  httpsAgent: new (require('https').Agent)({
+                    rejectUnauthorized: false
+                  })
+                }
+              );
+
+              if (detokenizeNIKResponse.status === 200) {
+                customer.nik = detokenizeNIKResponse.data.data;
+              } else {
+                throw new Error(`Detokenization failed: ${detokenizeNIKResponse.status}`);
               }
-            );
-  
-            if (detokenizeNIK.status === 200) {
-              customer.nik = detokenizeNIK.data.data;
-            } else {
-              throw new Error(`Detokenization failed: ${detokenizeNIK.status}`);
             }
-            
-          } else {
-            const detokenizeNIK = await axios.post(
-              'https://192.168.10.232/vts/rest/v2.0/detokenize',
-              {
-                tokengroup: "TokenGroup",
-                token: customer.nik,
-                tokentemplate: "TokenTemplate"
-              },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
+
+            if (role === 'finance') {
+              detokenizeCreditCardResponse = await axios.post(
+                'https://192.168.10.232/vts/rest/v2.0/detokenize',
+                {
+                  tokengroup: "TokenGroup",
+                  token: customer.creditCard,
+                  tokentemplate: "TokenTemplate"
                 },
-                auth: {
-                  username: username, // Use the username for authentication
-                  password: password  // Use the password for authentication
-                },
-                httpsAgent: new (require('https').Agent)({
-                  rejectUnauthorized: false // This allows self-signed certificates
-                })
+                {
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  auth: {
+                    username: 'admin',
+                    password: password
+                  },
+                  httpsAgent: new (require('https').Agent)({
+                    rejectUnauthorized: false
+                  })
+                }
+              );
+
+              if (detokenizeCreditCardResponse.status === 200) {
+                customer.creditCard = detokenizeCreditCardResponse.data.data;
+              } else {
+                throw new Error(`Detokenization failed: ${detokenizeCreditCardResponse.status}`);
               }
-            );
-  
-            if (detokenizeNIK.status === 200) {
-              customer.nik = detokenizeNIK.data.data;
-            } else {
-              throw new Error(`Detokenization failed: ${detokenizeNIK.status}`);
             }
+          } catch (error) {
+            console.error('Error detokenizing:', error);
           }
-
-          if (role === 'finance'){
-            const detokenizeCreditCard = await axios.post(
-              'https://192.168.10.232/vts/rest/v2.0/detokenize',
-              {
-                tokengroup: "TokenGroup",
-                token: customer.creditCard,
-                tokentemplate: "TokenTemplate"
-              },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                auth: {
-                  username: 'admin', // Use the username for authentication
-                  password: password  // Use the password for authentication
-                },
-                httpsAgent: new (require('https').Agent)({
-                  rejectUnauthorized: false // This allows self-signed certificates
-                })
-              }
-            );
-  
-            if (detokenizeCreditCard.status === 200) {
-              customer.creditCard = detokenizeCreditCard.data.data;
-            } else {
-              throw new Error(`Detokenization failed: ${detokenizeCreditCard.status}`);
-            }
-
-          } else {
-            const detokenizeCreditCard = await axios.post(
-              'https://192.168.10.232/vts/rest/v2.0/detokenize',
-              {
-                tokengroup: "TokenGroup",
-                token: customer.creditCard,
-                tokentemplate: "TokenTemplate"
-              },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                auth: {
-                  username: username, // Use the username for authentication
-                  password: password  // Use the password for authentication
-                },
-                httpsAgent: new (require('https').Agent)({
-                  rejectUnauthorized: false // This allows self-signed certificates
-                })
-              }
-            );
-  
-            if (detokenizeCreditCard.status === 200) {
-              customer.creditCard = detokenizeCreditCard.data.data;
-            } else {
-              throw new Error(`Detokenization failed: ${detokenizeCreditCard.status}`);
-            }
-          }
-
-        } catch (error) {
-          console.error('Error detokenizing:', error);
-          // Handle error (e.g., keep the token if detokenization fails)
         }
+
+        // Add orders to customer data
+        customer.orders = orders.filter(order => order.customer_id === customer.customer_id);
+
         return customer;
       }));
 

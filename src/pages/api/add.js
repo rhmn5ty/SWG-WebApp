@@ -1,4 +1,3 @@
-// src/pages/api/add.js
 import axios from 'axios';
 import clientPromise from '../../utils/mongodb';
 
@@ -11,7 +10,14 @@ export default async (req, res) => {
 
       const { username, userPassword, ...customer } = req.body
 
-      // Tokenize the ktp field
+      // Find the highest customer_id in the collection
+      const highestCustomer = await collection.findOne({}, { sort: { customer_id: -1 } });
+      const nextCustomerId = highestCustomer ? highestCustomer.customer_id + 1 : 1;
+
+      // Add the customer_id to the new customer
+      customer.customer_id = nextCustomerId;
+
+      // Tokenize the NIK field
       const tokenizeNIK = await axios.post(
         'https://192.168.10.232/vts/rest/v2.0/tokenize',
         {
@@ -39,7 +45,7 @@ export default async (req, res) => {
         throw new Error(`Tokenization failed: ${tokenizeNIK.status}`);
       }
 
-      // Tokenize the ktp field
+      // Tokenize the creditCard field
       const tokenizeCreditCard = await axios.post(
         'https://192.168.10.232/vts/rest/v2.0/tokenize',
         {
@@ -67,7 +73,7 @@ export default async (req, res) => {
         throw new Error(`Tokenization failed: ${tokenizeCreditCard.status}`);
       }
 
-      console.log("Inserting customer with tokenized KTP:", customer); // Log the customer data being inserted
+      console.log("Inserting customer with tokenized data:", customer); // Log the customer data being inserted
 
       await collection.insertOne(customer);
 

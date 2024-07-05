@@ -1,0 +1,36 @@
+{
+  "id":"FileSample-b004f83efaa",
+  "name":"FileSample",
+  "createBadRecordFile":true,
+  "source":{
+    "@type":"CSV_FILE",
+    "filepath":"input.csv",
+    "delimiter":",",
+    "qualifier":"\"",
+    "unescapeInput":true,
+    "columnCount":"12",
+    "hasHeaderRow":true
+  },
+  "destination":{
+    "@type":"CSV_FILE",
+    "filepath":"output.csv"
+  },
+  "tables":[
+    {
+      "columns":[
+        {
+          "name":"latitude",
+          "action":"ENCRYPT",
+          "config":[
+            {
+              "@type":"FPE",
+              "key":"KEYNAME",
+              "tweak":"010ACD5B99F3C343",
+              "characterSet":"digits"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
