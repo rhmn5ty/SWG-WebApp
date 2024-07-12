@@ -1,4 +1,4 @@
-// src/app/add/page.tsx
+// src/app/add-order/page.tsx
 "use client";
 
 import { useState } from 'react';
@@ -7,11 +7,12 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../../context/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 
-const AddCustomer = () => {
+const AddOrder = () => {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    nik: '',
+    product: '',
+    quantity: '',
+    creditCard: '',
   });
 
   const [error, setError] = useState(null);
@@ -34,15 +35,15 @@ const AddCustomer = () => {
     };
 
     try {
-      const response = await axios.post('/api/add', payload); // Ensure the URL is correct
+      const response = await axios.post('/api/add_order', payload); // Ensure the URL is correct
       if (response.status === 200) {
-        alert('Customer added successfully!');
+        alert('Order added successfully!');
         router.push('/customer'); // Navigate to the customer page
       } else {
         throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error adding customer:', error);
+      console.error('Error adding order:', error);
       setError(error.response?.data?.message || error.message || 'An unknown error occurred');
     }
   };
@@ -51,22 +52,12 @@ const AddCustomer = () => {
     <ProtectedRoute>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-md p-8 space-y-8 bg-white shadow-md rounded-md">
-          <h1 className="text-2xl font-bold text-center">Add Customer</h1>
+          <h1 className="text-2xl font-bold text-center">Add Order</h1>
           <span className="block text-center text-gray-600">Logged in as: {user?.username}</span>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-gray-700">Name:</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700">Email:</label>
+              <label className="block text-gray-700">Customer Email:</label>
               <input
                 type="email"
                 name="email"
@@ -76,11 +67,31 @@ const AddCustomer = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700">NIK:</label>
+              <label className="block text-gray-700">Product:</label>
               <input
                 type="text"
-                name="nik"
-                value={formData.nik}
+                name="product"
+                value={formData.product}
+                onChange={handleChange}
+                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700">Quantity:</label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700">Credit Card:</label>
+              <input
+                type="text"
+                name="creditCard"
+                value={formData.creditCard}
                 onChange={handleChange}
                 className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -89,7 +100,7 @@ const AddCustomer = () => {
               type="submit"
               className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
-              Add Customer
+              Add Order
             </button>
           </form>
         </div>
@@ -98,4 +109,4 @@ const AddCustomer = () => {
   );
 };
 
-export default AddCustomer;
+export default AddOrder;

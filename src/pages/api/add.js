@@ -8,7 +8,7 @@ export default async (req, res) => {
       const db = client.db("swg");
       const collection = db.collection("customer");
 
-      const { username, userPassword, ...customer } = req.body
+      const { username, userPassword, ...customer } = req.body;
 
       // Find the highest customer_id in the collection
       const highestCustomer = await collection.findOne({}, { sort: { customer_id: -1 } });
@@ -44,36 +44,6 @@ export default async (req, res) => {
       } else {
         throw new Error(`Tokenization failed: ${tokenizeNIK.status}`);
       }
-
-      // Tokenize the creditCard field
-      const tokenizeCreditCard = await axios.post(
-        'https://192.168.10.232/vts/rest/v2.0/tokenize',
-        {
-          tokengroup: "TokenGroup",
-          data: customer.creditCard,
-          tokentemplate: "TokenTemplate"
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          auth: {
-            username: username, // Use the username for authentication
-            password: userPassword // Use the userPassword for authentication
-          },
-          httpsAgent: new (require('https').Agent)({
-            rejectUnauthorized: false // This allows self-signed certificates
-          })
-        }
-      );
-
-      if (tokenizeCreditCard.status === 200) {
-        customer.creditCard = tokenizeCreditCard.data.token;
-      } else {
-        throw new Error(`Tokenization failed: ${tokenizeCreditCard.status}`);
-      }
-
-      console.log("Inserting customer with tokenized data:", customer); // Log the customer data being inserted
 
       await collection.insertOne(customer);
 

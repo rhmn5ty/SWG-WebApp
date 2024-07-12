@@ -65,18 +65,33 @@ export default function Customers() {
                 Logout
               </button>
               {user?.username !== 'customer' && user?.username !== 'hr' && user?.username !== 'finance' ? (
-                <Link href="/add" legacyBehavior>
-                  <a className="ml-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300">
-                    Add New Customer
-                  </a>
-                </Link>
+                <>
+                  <Link href="/add" legacyBehavior>
+                    <a className="ml-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300">
+                      Add New Customer
+                    </a>
+                  </Link>
+                  <Link href="/add_order" legacyBehavior>
+                    <a className="ml-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300">
+                      Add New Order
+                    </a>
+                  </Link>
+                </>
               ) : (
-                <button
-                  disabled
-                  className="ml-4 px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed"
-                >
-                  Add New Customer
-                </button>
+                <>
+                  <button
+                    disabled
+                    className="ml-4 px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed"
+                  >
+                    Add New Customer
+                  </button>
+                  <button
+                    disabled
+                    className="ml-4 px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed"
+                  >
+                    Add New Order
+                  </button>
+                </>
               )}
             </div>
           </div>
