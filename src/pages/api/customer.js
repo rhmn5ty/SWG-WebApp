@@ -3,7 +3,7 @@ import clientPromise from '../../utils/mongodb';
 
 export default async (req, res) => {
   if (req.method === 'GET') {
-    const { username, password } = req.query;
+    const { username, password, page = 0, limit = 10 } = req.query;
 
     try {
       const client = await clientPromise;
@@ -11,11 +11,16 @@ export default async (req, res) => {
       const customerCollection = db.collection("customer");
       const orderCollection = db.collection("order");
 
-      const customers = await customerCollection.find({}).toArray();
+      const totalCustomers = await customerCollection.countDocuments();
+      const customers = await customerCollection.find({})
+        .sort({ customer_id: -1 })  // Sort customers by customer_id in descending order
+        .skip(page * limit)
+        .limit(parseInt(limit))
+        .toArray();
+
       const customerIds = customers.map(customer => customer.customer_id);
       const orders = await orderCollection.find({ customer_id: { $in: customerIds } }).toArray();
 
-      // Detokenize customers
       const detokenizedCustomers = await Promise.all(customers.map(async (customer) => {
         try {
           if (username !== 'database') {
@@ -54,7 +59,6 @@ export default async (req, res) => {
         return customer;
       }));
 
-      // Detokenize orders
       const detokenizedOrders = await Promise.all(orders.map(async (order) => {
         try {
           if (username !== 'database') {
@@ -92,13 +96,12 @@ export default async (req, res) => {
         return order;
       }));
 
-      // Combine detokenized customers and orders
       const combinedData = detokenizedCustomers.map(customer => {
         customer.orders = detokenizedOrders.filter(order => order.customer_id === customer.customer_id);
         return customer;
       });
 
-      res.status(200).json(combinedData);
+      res.status(200).json({ data: combinedData, total: totalCustomers });
     } catch (e) {
       console.error('Error fetching data:', e);
       res.status(500).json({ message: 'Failed to fetch data', error: e.message });

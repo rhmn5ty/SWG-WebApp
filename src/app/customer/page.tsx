@@ -8,22 +8,31 @@ import ProtectedRoute from '../../context/ProtectedRoute';
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [totalCustomers, setTotalCustomers] = useState(0);
   const { user, logout } = useAuth();
   const rowsPerPage = 10;
 
-  useEffect(() => {
+  const fetchCustomerData = async (page) => {
     if (user) {
-      // Fetch customer data from the backend API
-      fetch(`/api/customer?username=${user.username}&password=${user.password}`, { cache: 'no-store' })  // Disable caching
-        .then(response => response.json())
-        .then(data => {
-          // Sort customers by customer_id in descending order
-          const sortedCustomers = data.sort((a, b) => b.customer_id - a.customer_id);
-          setCustomers(sortedCustomers);
-        })
-        .catch(error => console.error('Error fetching customers:', error));
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/customer?username=${user.username}&password=${user.password}&page=${page}&limit=${rowsPerPage}`, { cache: 'no-store' });
+        const { data, total } = await response.json();
+
+        setCustomers(data);
+        setTotalCustomers(total);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [user]);
+  };
+
+  useEffect(() => {
+    fetchCustomerData(currentPage);
+  }, [user, currentPage]);
 
   const handleLogout = () => {
     logout(() => {
@@ -32,14 +41,14 @@ export default function Customers() {
   };
 
   const handleNextPage = () => {
-    setCurrentPage(prevPage => prevPage + 1);
+    if ((currentPage + 1) * rowsPerPage < totalCustomers) {
+      setCurrentPage(prevPage => prevPage + 1);
+    }
   };
 
   const handlePreviousPage = () => {
     setCurrentPage(prevPage => Math.max(prevPage - 1, 0));
   };
-
-  const currentCustomers = customers.slice(currentPage * rowsPerPage, (currentPage + 1) * rowsPerPage);
 
   return (
     <ProtectedRoute>
@@ -73,59 +82,63 @@ export default function Customers() {
           </div>
         </header>
         <main className="flex-grow container mx-auto px-6 py-8">
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border">
-              <thead>
-                <tr className="w-full bg-blue-100">
-                  <th className="px-4 py-2 w-1/5">Name</th>
-                  <th className="px-4 py-2 w-1/5">Email</th>
-                  <th className="px-4 py-2 w-1/5">NIK</th>
-                  <th className="px-4 py-2 w-1/5">Orders</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentCustomers.map((customer) => (
-                  <React.Fragment key={customer.customer_id}>
-                    <tr className="hover:bg-gray-200">
-                      <td className="border px-4 py-2 w-1/5">{customer.name}</td>
-                      <td className="border px-4 py-2 w-1/5">{customer.email}</td>
-                      <td className="border px-4 py-2 w-1/5">{customer.nik}</td>
-                      <td className="border px-4 py-2 w-1/5">
-                        <details>
-                          <summary className="cursor-pointer">View Orders</summary>
-                          <table className="min-w-full bg-white border mt-2">
-                            <thead>
-                              <tr className="bg-gray-100">
-                                <th className="px-4 py-2">Order ID</th>
-                                <th className="px-4 py-2">Product</th>
-                                <th className="px-4 py-2">Quantity</th>
-                                <th className="px-4 py-2">Credit Card</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {customer.orders.map((order) => (
-                                <tr key={order.order_id} className="hover:bg-gray-200">
-                                  <td className="border px-4 py-2">{order.order_id}</td>
-                                  <td className="border px-4 py-2">{order.product}</td>
-                                  <td className="border px-4 py-2">{order.quantity}</td>
-                                  <td className="border px-4 py-2">{order.creditCard}</td>
+          {loading ? (
+            <p>Loading data, please wait...</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border">
+                <thead>
+                  <tr className="w-full bg-blue-100">
+                    <th className="px-4 py-2 w-1/5">Name</th>
+                    <th className="px-4 py-2 w-1/5">Email</th>
+                    <th className="px-4 py-2 w-1/5">NIK</th>
+                    <th className="px-4 py-2 w-1/5">Orders</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customers.map((customer) => (
+                    <React.Fragment key={customer.customer_id}>
+                      <tr className="hover:bg-gray-200">
+                        <td className="border px-4 py-2 w-1/5">{customer.name}</td>
+                        <td className="border px-4 py-2 w-1/5">{customer.email}</td>
+                        <td className="border px-4 py-2 w-1/5">{customer.nik}</td>
+                        <td className="border px-4 py-2 w-1/5">
+                          <details>
+                            <summary className="cursor-pointer">View Orders</summary>
+                            <table className="min-w-full bg-white border mt-2">
+                              <thead>
+                                <tr className="bg-gray-100">
+                                  <th className="px-4 py-2">Order ID</th>
+                                  <th className="px-4 py-2">Product</th>
+                                  <th className="px-4 py-2">Quantity</th>
+                                  <th className="px-4 py-2">Credit Card</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </details>
-                      </td>
-                    </tr>
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-            <div className="flex justify-between items-center mt-4">
-              <span>
-                Showing {currentPage * rowsPerPage + 1} to {Math.min((currentPage + 1) * rowsPerPage, customers.length)} of {customers.length} entries
-              </span>
+                              </thead>
+                              <tbody>
+                                {customer.orders.map((order) => (
+                                  <tr key={order.order_id} className="hover:bg-gray-200">
+                                    <td className="border px-4 py-2">{order.order_id}</td>
+                                    <td className="border px-4 py-2">{order.product}</td>
+                                    <td className="border px-4 py-2">{order.quantity}</td>
+                                    <td className="border px-4 py-2">{order.creditCard}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </details>
+                        </td>
+                      </tr>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-between items-center mt-4">
+                <span>
+                  Showing {currentPage * rowsPerPage + 1} to {Math.min((currentPage + 1) * rowsPerPage, totalCustomers)} of {totalCustomers} entries
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </main>
         <div className="fixed bottom-0 left-0 right-0 bg-gray-200 p-4 flex justify-between items-center">
           <button
@@ -137,7 +150,7 @@ export default function Customers() {
           </button>
           <button
             onClick={handleNextPage}
-            disabled={(currentPage + 1) * rowsPerPage >= customers.length}
+            disabled={(currentPage + 1) * rowsPerPage >= totalCustomers}
             className="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50"
           >
             Next

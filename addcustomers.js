@@ -12,7 +12,7 @@ async function addCustomers() {
     const collection = database.collection('customer');
 
     const customers = [];
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 1000; i++) {
       console.log(i);
       const customer = {
         customer_id: i,
