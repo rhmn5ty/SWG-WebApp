@@ -14,7 +14,7 @@ export default function Customers() {
   useEffect(() => {
     if (user) {
       // Fetch customer data from the backend API
-      fetch(`/api/customer?username=${user.username}&password=${user.password}&role=${user.role}`, { cache: 'no-store' })  // Disable caching
+      fetch(`/api/customer?username=${user.username}&password=${user.password}`, { cache: 'no-store' })  // Disable caching
         .then(response => response.json())
         .then(data => {
           // Sort customers by customer_id in descending order
@@ -55,7 +55,7 @@ export default function Customers() {
               >
                 Logout
               </button>
-              {user?.role !== 'customer' && user?.role !== 'hr' && user?.role !== 'finance' ? (
+              {user?.username !== 'customer' && user?.username !== 'hr' && user?.username !== 'finance' ? (
                 <Link href="/add" legacyBehavior>
                   <a className="ml-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition duration-300">
                     Add New Customer

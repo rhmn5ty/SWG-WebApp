@@ -53,7 +53,7 @@ const AddCustomer = () => {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-md p-8 space-y-8 bg-white shadow-md rounded-md">
           <h1 className="text-2xl font-bold text-center">Add Customer</h1>
-          <span className="block text-center text-gray-600">Logged in as: {user?.username} ({user?.role})</span>
+          <span className="block text-center text-gray-600">Logged in as: {user?.username}</span>
           {error && <p className="text-red-500 text-center">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

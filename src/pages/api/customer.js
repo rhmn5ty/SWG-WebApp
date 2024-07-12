@@ -3,7 +3,7 @@ import clientPromise from '../../utils/mongodb';
 
 export default async (req, res) => {
   if (req.method === 'GET') {
-    const { username, password, role } = req.query;
+    const { username, password } = req.query;
 
     try {
       const client = await clientPromise;
@@ -12,89 +12,96 @@ export default async (req, res) => {
       const orderCollection = db.collection("order");
 
       const customers = await customerCollection.find({}).toArray();
-
-      // Fetch orders for each customer
       const customerIds = customers.map(customer => customer.customer_id);
       const orders = await orderCollection.find({ customer_id: { $in: customerIds } }).toArray();
 
+      // Detokenize customers
       const detokenizedCustomers = await Promise.all(customers.map(async (customer) => {
-        if (role !== 'database') {
-          try {
-            let detokenizeNIKResponse;
-            let detokenizeCreditCardResponse;
-
-            if (role === 'hr' || role === 'finance') {
-              detokenizeNIKResponse = await axios.post(
-                'https://192.168.10.232/vts/rest/v2.0/detokenize',
-                {
-                  tokengroup: "TokenGroup",
-                  token: customer.nik,
-                  tokentemplate: "TokenTemplate"
+        try {
+          if (username !== 'database') {
+            // Detokenize NIK
+            const detokenizeNIK = await axios.post(
+              'https://192.168.10.232/vts/rest/v2.0/detokenize',
+              {
+                tokengroup: "TokenGroup",
+                token: customer.nik,
+                tokentemplate: "TokenTemplate"
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
                 },
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  auth: {
-                    username: 'admin',
-                    password: password
-                  },
-                  httpsAgent: new (require('https').Agent)({
-                    rejectUnauthorized: false
-                  })
-                }
-              );
-
-              if (detokenizeNIKResponse.status === 200) {
-                customer.nik = detokenizeNIKResponse.data.data;
-              } else {
-                throw new Error(`Detokenization failed: ${detokenizeNIKResponse.status}`);
-              }
-            }
-
-            if (role === 'finance') {
-              detokenizeCreditCardResponse = await axios.post(
-                'https://192.168.10.232/vts/rest/v2.0/detokenize',
-                {
-                  tokengroup: "TokenGroup",
-                  token: customer.creditCard,
-                  tokentemplate: "TokenTemplate"
+                auth: {
+                  username: username === 'hr' ? 'admin' : username,
+                  password: password
                 },
-                {
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  auth: {
-                    username: 'admin',
-                    password: password
-                  },
-                  httpsAgent: new (require('https').Agent)({
-                    rejectUnauthorized: false
-                  })
-                }
-              );
-
-              if (detokenizeCreditCardResponse.status === 200) {
-                customer.creditCard = detokenizeCreditCardResponse.data.data;
-              } else {
-                throw new Error(`Detokenization failed: ${detokenizeCreditCardResponse.status}`);
+                httpsAgent: new (require('https').Agent)({
+                  rejectUnauthorized: false // This allows self-signed certificates
+                })
               }
+            );
+
+            if (detokenizeNIK.status === 200) {
+              customer.nik = detokenizeNIK.data.data;
+            } else {
+              throw new Error(`Detokenization failed: ${detokenizeNIK.status}`);
             }
-          } catch (error) {
-            console.error('Error detokenizing:', error);
           }
+        } catch (error) {
+          console.error('Error detokenizing customer:', error);
         }
-
-        // Add orders to customer data
-        customer.orders = orders.filter(order => order.customer_id === customer.customer_id);
 
         return customer;
       }));
 
-      res.status(200).json(detokenizedCustomers);
+      // Detokenize orders
+      const detokenizedOrders = await Promise.all(orders.map(async (order) => {
+        try {
+          if (username !== 'database') {
+            const detokenizeCreditCard = await axios.post(
+              'https://192.168.10.232/vts/rest/v2.0/detokenize',
+              {
+                tokengroup: "TokenGroup",
+                token: order.creditCard,
+                tokentemplate: "TokenTemplate"
+              },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                auth: {
+                  username: username === 'finance' ? 'admin' : username,
+                  password: password
+                },
+                httpsAgent: new (require('https').Agent)({
+                  rejectUnauthorized: false // This allows self-signed certificates
+                })
+              }
+            );
+
+            if (detokenizeCreditCard.status === 200) {
+              order.creditCard = detokenizeCreditCard.data.data;
+            } else {
+              throw new Error(`Detokenization failed: ${detokenizeCreditCard.status}`);
+            }
+          }
+        } catch (error) {
+          console.error('Error detokenizing order:', error);
+        }
+
+        return order;
+      }));
+
+      // Combine detokenized customers and orders
+      const combinedData = detokenizedCustomers.map(customer => {
+        customer.orders = detokenizedOrders.filter(order => order.customer_id === customer.customer_id);
+        return customer;
+      });
+
+      res.status(200).json(combinedData);
     } catch (e) {
-      console.error('Error fetching customers:', e);
-      res.status(500).json({ message: 'Failed to fetch customers', error: e.message });
+      console.error('Error fetching data:', e);
+      res.status(500).json({ message: 'Failed to fetch data', error: e.message });
     }
   } else {
     res.status(405).json({ message: 'Method not allowed' });

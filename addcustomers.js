@@ -12,13 +12,13 @@ async function addCustomers() {
     const collection = database.collection('customer');
 
     const customers = [];
-    for (let i = 1; i <= 1000; i++) {
+    for (let i = 1; i <= 10; i++) {
       console.log(i);
       const customer = {
         customer_id: i,
         name: faker.person.fullName(),
         email: faker.internet.email(),
-        nik: faker.finance.creditCardNumber(), // Using credit card number for demo purposes
+        nik: faker.number.int({ min: 1111111111111111, max: 9999999999999999 }), // Using credit card number for demo purposes
         // creditCard: faker.finance.creditCardNumber(),
       };
 

@@ -14,14 +14,14 @@ async function addOrders() {
     const collection = database.collection('order');
 
     const orders = [];
-    for (let i = 1; i <= 300; i++) {
+    for (let i = 1; i <= 20; i++) {
       console.log(i);
       const order = {
         order_id: i,
         product: products[Math.floor(Math.random() * products.length)],
         quantity: faker.number.int({ min: 1, max: 10 }),
-        creditCard: faker.finance.creditCardNumber(),
-        customer_id: faker.number.int({ min: 951, max: 1000 })
+        creditCard: faker.number.int({ min: 1111111111111111, max: 9999999999999999 }),
+        customer_id: faker.number.int({ min: 1, max: 10 })
       };
 
       // Tokenize the creditCard
