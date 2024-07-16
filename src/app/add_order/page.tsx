@@ -1,36 +1,47 @@
-// src/app/add-order/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '../../context/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 
+interface FormData {
+  email: string;
+  product: string;
+  quantity: string;
+  creditCard: string;
+}
+
 const AddOrder = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     product: '',
     quantity: '',
     creditCard: '',
   });
-  const [bulkCount, setBulkCount] = useState(0);
-  const [error, setError] = useState(null);
+  const [bulkCount, setBulkCount] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const router = useRouter();
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleBulkChange = (e) => {
-    setBulkCount(e.target.value);
+  const handleBulkChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setBulkCount(Number(e.target.value));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null); // Reset error state
+
+    if (!user) {
+      setError('User is not authenticated');
+      return;
+    }
 
     const payload = {
       ...formData,
@@ -46,15 +57,20 @@ const AddOrder = () => {
       } else {
         throw new Error(`Unexpected response status: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error adding order:', error);
-      setError(error.response?.data?.message || error.message || 'An unknown error occurred');
+    } catch (err) {
+      console.error('Error adding order:', err);
+      setError((err as any).response?.data?.message || (err as any).message || 'An unknown error occurred');
     }
   };
 
-  const handleBulkSubmit = async (e) => {
+  const handleBulkSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null); // Reset error state
+
+    if (!user) {
+      setError('User is not authenticated');
+      return;
+    }
 
     try {
       const response = await axios.post('/api/add_bulk_orders', {
@@ -68,9 +84,9 @@ const AddOrder = () => {
       } else {
         throw new Error(`Unexpected response status: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error adding bulk orders:', error);
-      setError(error.response?.data?.message || error.message || 'An unknown error occurred');
+    } catch (err) {
+      console.error('Error adding bulk orders:', err);
+      setError((err as any).response?.data?.message || (err as any).message || 'An unknown error occurred');
     }
   };
 

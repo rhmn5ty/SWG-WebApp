@@ -5,15 +5,30 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import ProtectedRoute from '../../context/ProtectedRoute';
 
+interface Customer {
+  customer_id: string;
+  name: string;
+  email: string;
+  nik: string;
+  orders: Order[];
+}
+
+interface Order {
+  order_id: string;
+  product: string;
+  quantity: number;
+  creditCard: string;
+}
+
 export default function Customers() {
-  const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const { user, logout } = useAuth();
   const rowsPerPage = 10;
 
-  const fetchCustomerData = async (page) => {
+  const fetchCustomerData = async (page: number) => {
     if (user) {
       setLoading(true);
       try {
