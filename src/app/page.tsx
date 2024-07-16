@@ -14,7 +14,7 @@ export default function Home() {
       </header>
       <main className="flex flex-col items-center justify-center flex-1 w-full px-20 text-center">
         <h1 className="text-6xl font-bold mb-4">Secure Customer Information Management</h1>
-        <p className="text-2xl mb-6">Protect your customers' sensitive information with advanced tokenization technology.</p>
+        <p className="text-2xl mb-6">Protect your customer sensitive information with advanced tokenization technology.</p>
         <Link href="/signin" legacyBehavior>
           <div className="px-6 py-3 bg-orange-600 text-white font-semibold rounded-full hover:bg-orange-700 transition duration-300">
             Get Started
