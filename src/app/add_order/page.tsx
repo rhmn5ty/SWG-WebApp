@@ -14,7 +14,7 @@ const AddOrder = () => {
     quantity: '',
     creditCard: '',
   });
-
+  const [bulkCount, setBulkCount] = useState(0);
   const [error, setError] = useState(null);
   const { user } = useAuth();
   const router = useRouter();
@@ -22,6 +22,10 @@ const AddOrder = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleBulkChange = (e) => {
+    setBulkCount(e.target.value);
   };
 
   const handleSubmit = async (e) => {
@@ -44,6 +48,28 @@ const AddOrder = () => {
       }
     } catch (error) {
       console.error('Error adding order:', error);
+      setError(error.response?.data?.message || error.message || 'An unknown error occurred');
+    }
+  };
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    setError(null); // Reset error state
+
+    try {
+      const response = await axios.post('/api/add_bulk_orders', {
+        count: bulkCount,
+        username: user.username,
+        userPassword: user.password,
+      });
+      if (response.status === 200) {
+        alert('Bulk orders added successfully!');
+        router.push('/customer'); // Navigate to the customer page
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error adding bulk orders:', error);
       setError(error.response?.data?.message || error.message || 'An unknown error occurred');
     }
   };
@@ -101,6 +127,23 @@ const AddOrder = () => {
               className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
               Add Order
+            </button>
+          </form>
+          <form onSubmit={handleBulkSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-700">Number of Orders to Add:</label>
+              <input
+                type="number"
+                value={bulkCount}
+                onChange={handleBulkChange}
+                className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full px-4 py-2 font-bold text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+            >
+              Add Bulk Orders
             </button>
           </form>
         </div>
