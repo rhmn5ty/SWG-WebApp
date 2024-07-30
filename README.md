@@ -73,3 +73,15 @@ Setelah berhasil membuka website dan menghubungkan MongoDB, berikut adalah langk
   - Finance: Full Detokenized
 
 Karena data pada database masih kosong, kita harus mengisikan data-data tersebut terlebih dahulu. Sebagai user role database atau admin, tekan tombol `Add New Customer`. Penambahan data customer dapat diisi satu per satu dan bisa juga diisi langsung dengan jumlah yang banyak dengan cara mengisi jumlahnya dan menekan tombol `Add Bulk Customers`. Selanjutnya, lakukan juga untuk data orders pada bagian `Add New Orders`. Data sudah bisa dilihat pada tampilan website sesuai dengan hak akses masing-masing role.
+
+Selanjutnya, demonstrasi penggunaan BDT dapat dilakukan untuk menambahkan data dengan jumlah banyak ke database yang mulanya belum terproteksi dengan tokenization. Demonstrasi ini menggambarkan bagaimana fitur Batch Data Transformation dapat melakukan tokenization ke data yang sudah dimiliki lebih dahulu oleh sebuah organisasi dengan jumlah baris yang sangat banyak dapat dengan cepat diubah menjadi data yang sudah melalui proses tokenization. Berikut adalah cara penggunaannya.
+
+### Demonstrasi File to File Batch Data Transformation (BDT)
+
+1. File yang akan ditransformasi adalah file `dummycustomers.csv` yang terletak di folder `bdt/in` dengan seribu baris data pelanggan. Buka file tersebut dan lihat isi datanya terdiri dari lima kolom dengan salah satunya kolom NIK sebagai data pribadi yang akan dilakukan tokenization.
+2. Buka command prompt pada directory folder `bdt/bin`.
+3. Jalankan command berikut: `bdt.bat -e -c ../samples/bdt.config`
+4. Tekan enter untuk semua password yang diminta kecuali VTS user password yang diisi dengan `Gu@rd1um`.
+5. Jalankan command berikut: `bdt.bat -v -c ../samples/bdt.config -p ../samples/bdt.policy`
+6. Jalankan command berikut: `bdt.bat -t -c ../samples/bdt.config -p ../samples/bdt.policy`
+7. Hasil transformasi file dapat dilihat pada folder `bdt/out` file `dummycustomers_masked.csv` dengan kolom NIK yang sudah melalui proses tokenization.
