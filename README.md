@@ -85,3 +85,4 @@ Selanjutnya, demonstrasi penggunaan BDT dapat dilakukan untuk menambahkan data d
 5. Jalankan command berikut: `bdt.bat -v -c ../samples/bdt.config -p ../samples/bdt.policy`
 6. Jalankan command berikut: `bdt.bat -t -c ../samples/bdt.config -p ../samples/bdt.policy`
 7. Hasil transformasi file dapat dilihat pada folder `bdt/out` file `dummycustomers_masked.csv` dengan kolom NIK yang sudah melalui proses tokenization.
+8. Hasil file transformasi ini bisa selanjutnya dimasukkan ke database ‘swg’ pada collection ‘customer’ yang masih kosong dengan menekan tombol Add Data dan Import CSV File.
