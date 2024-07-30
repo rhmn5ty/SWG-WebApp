@@ -32,7 +32,11 @@ Dalam demonstrasi ini, database yang digunakan adalah database on-premise sebaga
 
 Pada MongoDB Compass, buat koneksi baru seperti berikut.
 
-URI yang dipakai secara default dan pada kode program ini adalah `mongodb://localhost:27017/`. Jika port yang dipakai berbeda, pada kode program, buka file `SWGDemo-GDE-Tokenization-BDT/src/utils/mongodb.js`, lalu ubah isi variabel `uri`. Setelah ini, database sudah siap digunakan.
+![alt text](image.png)
+
+URI yang dipakai secara default dan pada kode program ini adalah `mongodb://localhost:27017/`. Jika port yang dipakai berbeda, pada kode program, buka file `SWGDemo-GDE-Tokenization-BDT/src/utils/mongodb.js` seperti pada gambar di bawah, lalu ubah isi variabel `uri`. Setelah ini, database sudah siap digunakan.
+
+![alt text](image-1.png)
 
 ## 3. Cara Penggunaan
 
