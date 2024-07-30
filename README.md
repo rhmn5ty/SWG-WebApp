@@ -1,4 +1,4 @@
-# Contoh Implementasi Sistem
+# Demo IBM Security Guardium Data Encryption for Tokenization and Batch Data Transformation
 
 Dalam penggunaan software GDE untuk tokenization, demonstrasi bisa dilihat dari hasil contoh implementasi dalam bentuk sistem website customer management sederhana. Berikut adalah panduan untuk melakukan demonstrasi tersebut.
 
