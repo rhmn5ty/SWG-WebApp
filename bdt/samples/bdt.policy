@@ -1,19 +1,19 @@
 {
- "id":"creditcard_policy_id",
- "name":"creditcardpolicy",
+ "id":"nik_policy",
+ "name":"nikpolicy",
  "createBadRecordFile":true,
  "source":{
  "@type":"CSV_FILE",
- "filepath":"customer.csv",
+ "filepath":"dummycustomers.csv",
  "delimiter":",",
  "qualifier":"\"",
  "unescapeInput":true,
- "columnCount":"6",
+ "columnCount":"5",
  "hasHeaderRow":true
  },
  "destination":{
  "@type":"CSV_FILE",
- "filepath":"customer_masked.csv"
+ "filepath":"dummycustomers_masked.csv"
  },
  "tables":[
 
@@ -21,7 +21,7 @@
  "columns":[
 
 {
- "name":"creditCard",
+ "name":"nik",
  "action":"TOKENIZE",
  "config":[
 
